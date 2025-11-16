@@ -1,36 +1,36 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Mock Interviews • YC • Surkyl</title>
-<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1" />
+<title>YC Mock Interview • Surkyl</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="stylesheet" type="text/css" href="style.css" />
 
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
 <script type="text/javascript" src="data.js"></script>
 <script type="text/javascript" src="functions.js"></script>
 <script type="text/javascript">
-var timer = 15;
-
+var timer = 20;
+var totalQuestions = 0;
+var answeredQuestions = 0;
 
 // Randomise Questions & Tips
 q.sort(function() {return 0.5 - Math.random()})
 tips.sort(function() {return 0.5 - Math.random()})
 
+totalQuestions = q.length;
 
 // End Questions
 q.push('done');
-
 
 $(document).ready(function(){
 	next_q();
 	timer_tick();
 	display_tip();
+	updateProgress();
 });
 
-
-
 $(document).keypress(function(e) {
-
 	switch (e.which)
 	{
 		case 13:
@@ -44,619 +44,135 @@ $(document).keypress(function(e) {
 			break;
 
 		case 110:
-			// Doesn't Do Anything, Move Along
+			// Easter Egg
 			$('body').append('<div class="egg"><iframe width="420" height="315" src="http://www.youtube.com/embed/QH2-TGUlwu4?autoplay=1" frameborder="0" allowfullscreen></iframe></div>');
 			break;
-
 	}
 });
+
+function updateProgress() {
+	var progress = (answeredQuestions / totalQuestions) * 100;
+	$('.progress-fill').css('width', progress + '%');
+	$('.progress-text').text(answeredQuestions + ' / ' + totalQuestions);
+}
 </script>
 
-<style>
-	:root {
-		--color-primary: #f47400;
-		--color-muesync: #00cff4;
-		--color-secondary: #0077be;
-		--color-accent: #00a896;
-		--color-bg-dark: #0d0d0d;
-		--color-bg-secondary: #171717;
-		--color-bg-tertiary: #262626;
-		--color-bg-input: #1e1e1e;
-		--color-text-light: #f5f5f5;
-		--color-text-gray: #a3a3a3;
-		--color-text-muted: #737373;
-		--color-border: #3d3d3d;
-		--color-success: #00c853;
-		--color-error: #ff5252;
-		--color-warning: #ffc107;
-		--method-get: #61affe;
-		--method-post: #49cc90;
-		--method-put: #fca130;
-		--method-delete: #f93e3e;
-		--method-patch: #50e3c2;
-	}
-
-	* {
-		margin: 0;
-		padding: 0;
-		box-sizing: border-box;
-	}
-
-	body {
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-		background-color: var(--color-bg-dark);
-		color: var(--color-text-light);
-		line-height: 1.5;
-		height: 100vh;
-		display: flex;
-		flex-direction: column;
-	}
-
-	/* Header */
-	.header {
-		background: var(--color-bg-secondary);
-		border-bottom: 1px solid var(--color-border);
-		padding: 12px 20px;
-		display: flex;
-		align-items: center;
-		gap: 20px;
-	}
-
-	.logo {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		color: var(--color-primary);
-		font-weight: 600;
-		font-size: 18px;
-	}
-
-	.logo svg {
-		width: 28px;
-		height: 28px;
-	}
-
-	.header-actions {
-		margin-left: auto;
-		display: flex;
-		gap: 10px;
-	}
-
-	.btn {
-		padding: 8px 16px;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
-		font-size: 14px;
-		font-weight: 500;
-		transition: all 0.2s;
-	}
-
-	.btn-primary {
-		background: var(--color-primary);
-		color: white;
-	}
-
-	.btn-primary:hover {
-		background: #d66800;
-	}
-
-	.btn-secondary {
-		background: var(--color-bg-tertiary);
-		color: var(--color-text-light);
-		border: 1px solid var(--color-border);
-	}
-
-	.btn-secondary:hover {
-		background: var(--color-border);
-	}
-
-	/* Main Layout */
-	.main-container {
-		display: flex;
-		flex: 1;
-		overflow: hidden;
-	}
-
-	/* Sidebar */
-	.sidebar {
-		width: 300px;
-		background: var(--color-bg-secondary);
-		border-right: 1px solid var(--color-border);
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-	}
-
-	.sidebar-header {
-		padding: 16px;
-		border-bottom: 1px solid var(--color-border);
-		font-weight: 600;
-		color: var(--color-text-gray);
-		font-size: 12px;
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
-	}
-
-	.endpoints-list {
-		flex: 1;
-		overflow-y: auto;
-		padding: 8px;
-	}
-
-	.endpoint-item {
-		display: flex;
-		align-items: center;
-		padding: 10px 12px;
-		border-radius: 6px;
-		cursor: pointer;
-		transition: background 0.2s;
-		margin-bottom: 4px;
-		text-decoration: none;
-		color: inherit;
-	}
-
-	.endpoint-item:hover {
-		background: var(--color-bg-tertiary);
-	}
-
-	.endpoint-item.active {
-		background: var(--color-bg-tertiary);
-		border-left: 3px solid var(--color-primary);
-	}
-
-	.method-badge {
-		font-size: 10px;
-		font-weight: 700;
-		padding: 3px 8px;
-		border-radius: 3px;
-		margin-right: 10px;
-		min-width: 50px;
-		text-align: center;
-	}
-
-	.method-GET {
-		background: var(--method-get);
-		color: #000;
-	}
-	.method-POST {
-		background: var(--method-post);
-		color: #000;
-	}
-	.method-PUT {
-		background: var(--method-put);
-		color: #000;
-	}
-	.method-DELETE {
-		background: var(--method-delete);
-		color: #fff;
-	}
-	.method-PATCH {
-		background: var(--method-patch);
-		color: #000;
-	}
-
-	.endpoint-path {
-		font-size: 13px;
-		color: var(--color-text-gray);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	/* Content Area */
-	.content {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-	}
-
-	/* Request Builder */
-	.request-builder {
-		background: var(--color-bg-secondary);
-		border-bottom: 1px solid var(--color-border);
-		padding: 16px 20px;
-	}
-
-	.url-bar {
-		display: flex;
-		gap: 10px;
-		align-items: center;
-		background: var(--color-bg-input);
-		border: 1px solid var(--color-border);
-		border-radius: 6px;
-		padding: 4px;
-	}
-
-	.method-select {
-		background: var(--color-bg-tertiary);
-		color: var(--color-text-light);
-		border: none;
-		padding: 10px 16px;
-		border-radius: 4px;
-		font-weight: 600;
-		cursor: pointer;
-		min-width: 100px;
-	}
-
-	.url-input {
-		flex: 1;
-		background: transparent;
-		border: none;
-		color: var(--color-text-light);
-		font-size: 14px;
-		padding: 10px;
-		outline: none;
-	}
-
-	.send-btn {
-		background: var(--color-primary);
-		color: white;
-		border: none;
-		padding: 10px 24px;
-		border-radius: 4px;
-		font-weight: 600;
-		cursor: pointer;
-		transition: background 0.2s;
-	}
-
-	.send-btn:hover {
-		background: #d66800;
-	}
-
-	.send-btn:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	/* Tabs */
-	.tabs {
-		display: flex;
-		border-bottom: 1px solid var(--color-border);
-		background: var(--color-bg-secondary);
-	}
-
-	.tab {
-		padding: 12px 20px;
-		cursor: pointer;
-		color: var(--color-text-gray);
-		font-size: 13px;
-		font-weight: 500;
-		border-bottom: 2px solid transparent;
-		transition: all 0.2s;
-	}
-
-	.tab:hover {
-		color: var(--color-text-light);
-	}
-
-	.tab.active {
-		color: var(--color-primary);
-		border-bottom-color: var(--color-primary);
-	}
-
-	.tab-count {
-		background: var(--color-bg-tertiary);
-		color: var(--color-text-muted);
-		padding: 2px 6px;
-		border-radius: 10px;
-		font-size: 11px;
-		margin-left: 6px;
-	}
-
-	/* Tab Content */
-	.tab-content {
-		flex: 1;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.tab-panel {
-		display: none;
-		flex: 1;
-		overflow: auto;
-		padding: 16px 20px;
-	}
-
-	.tab-panel.active {
-		display: block;
-	}
-
-	/* Params Table */
-	.params-table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-
-	.params-table th {
-		text-align: left;
-		padding: 10px 12px;
-		color: var(--color-text-muted);
-		font-size: 12px;
-		font-weight: 600;
-		text-transform: uppercase;
-		border-bottom: 1px solid var(--color-border);
-	}
-
-	.params-table td {
-		padding: 8px 12px;
-		border-bottom: 1px solid var(--color-border);
-	}
-
-	.params-table input[type='text'] {
-		background: var(--color-bg-input);
-		border: 1px solid var(--color-border);
-		color: var(--color-text-light);
-		padding: 8px 12px;
-		border-radius: 4px;
-		width: 100%;
-		font-size: 13px;
-	}
-
-	.params-table input[type='checkbox'] {
-		width: 18px;
-		height: 18px;
-		accent-color: var(--color-primary);
-	}
-
-	/* Response Section */
-	.response-section {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		border-top: 1px solid var(--color-border);
-		overflow: hidden;
-	}
-
-	.response-header {
-		background: var(--color-bg-secondary);
-		padding: 12px 20px;
-		display: flex;
-		align-items: center;
-		gap: 20px;
-		border-bottom: 1px solid var(--color-border);
-	}
-
-	.response-title {
-		font-weight: 600;
-		color: var(--color-text-light);
-	}
-
-	.response-status {
-		padding: 4px 12px;
-		border-radius: 4px;
-		font-size: 13px;
-		font-weight: 600;
-	}
-
-	.status-success {
-		background: rgba(0, 200, 83, 0.2);
-		color: var(--color-success);
-	}
-
-	.status-error {
-		background: rgba(255, 82, 82, 0.2);
-		color: var(--color-error);
-	}
-
-	.response-meta {
-		color: var(--color-text-muted);
-		font-size: 12px;
-		margin-left: auto;
-	}
-
-	.response-body {
-		flex: 1;
-		overflow: auto;
-		background: var(--color-bg-dark);
-	}
-
-	.code-block {
-		padding: 20px;
-		font-family: 'SF Mono', 'Consolas', 'Liberation Mono', Menlo, monospace;
-		font-size: 13px;
-		line-height: 1.6;
-		white-space: pre-wrap;
-		word-break: break-word;
-	}
-
-	.json-key {
-		color: #9cdcfe;
-	}
-	.json-string {
-		color: #ce9178;
-	}
-	.json-number {
-		color: #b5cea8;
-	}
-	.json-boolean {
-		color: #569cd6;
-	}
-	.json-null {
-		color: #569cd6;
-	}
-
-	/* Empty State */
-	.empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		height: 100%;
-		color: var(--color-text-muted);
-		padding: 40px;
-	}
-
-	.empty-state svg {
-		width: 120px;
-		height: 120px;
-		margin-bottom: 20px;
-		opacity: 0.5;
-	}
-
-	.empty-state p {
-		font-size: 16px;
-	}
-
-	/* Scrollbar */
-	::-webkit-scrollbar {
-		width: 8px;
-		height: 8px;
-	}
-
-	::-webkit-scrollbar-track {
-		background: var(--color-bg-dark);
-	}
-
-	::-webkit-scrollbar-thumb {
-		background: var(--color-border);
-		border-radius: 4px;
-	}
-
-	::-webkit-scrollbar-thumb:hover {
-		background: var(--color-text-muted);
-	}
-
-	/* Info Panel */
-	.info-panel {
-		background: var(--color-bg-tertiary);
-		border-radius: 6px;
-		padding: 16px;
-		margin-bottom: 16px;
-	}
-
-	.info-panel h3 {
-		color: var(--color-primary);
-		margin-bottom: 8px;
-		font-size: 16px;
-	}
-
-	.info-panel p {
-		color: var(--color-text-gray);
-		font-size: 14px;
-		margin: 0;
-	}
-
-	.tag {
-		display: inline-block;
-		background: var(--color-bg-secondary);
-		color: var(--color-accent);
-		padding: 4px 10px;
-		border-radius: 12px;
-		font-size: 11px;
-		font-weight: 500;
-		margin-right: 6px;
-		margin-top: 8px;
-	}
-
-	/* Loading */
-	.loading {
-		display: none;
-		align-items: center;
-		gap: 10px;
-		color: var(--color-text-muted);
-	}
-
-	.loading.active {
-		display: flex;
-	}
-
-	.spinner {
-		width: 20px;
-		height: 20px;
-		border: 2px solid var(--color-border);
-		border-top-color: var(--color-primary);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	/* Copy Button */
-	.copy-btn {
-		background: var(--color-bg-tertiary);
-		color: var(--color-text-gray);
-		border: 1px solid var(--color-border);
-		padding: 6px 12px;
-		border-radius: 4px;
-		cursor: pointer;
-		font-size: 12px;
-		transition: all 0.2s;
-	}
-
-	.copy-btn:hover {
-		background: var(--color-border);
-		color: var(--color-text-light);
-	}
-
-	.copy-btn.copied {
-		background: var(--color-success);
-		color: white;
-		border-color: var(--color-success);
-	}
-</style>
-
 </head>
-<body class="body">
+<body>
 
-<!-- Message to be Displayed when out of questions -->
-<div id="end" class="hide">
-	<h1>You have reached the end of questions</h1>
-	<h2>Hopefully you will be a little more ready for your YC interview, good luck! :)</h2>
+<!-- Background Effects -->
+<div class="bg-gradient"></div>
+<div class="bg-grid"></div>
 
-	<!-- <p>Why not check out <a href="http://goscale.com/">GoScale</a>, it&#39;s cloud computing that scales in milliseconds.</p> -->
+<!-- Header -->
+<header class="header">
+	<div class="logo">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+		</svg>
+		<span>YC Interview Simulator</span>
+	</div>
+	<a href="https://surkyl.com" target="_blank" rel="noopener" class="header-badge">by Surkyl</a>
+</header>
+
+<!-- Progress Bar -->
+<div class="progress-bar">
+	<div class="progress-fill"></div>
+	<span class="progress-text">0 / 0</span>
 </div>
 
+<!-- Main Content -->
+<main class="main-content">
+	
+	<!-- Message to be Displayed when out of questions -->
+	<div id="end" class="hide">
+		<div class="end-content">
+			<div class="end-icon">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+					<polyline points="22 4 12 14.01 9 11.01"/>
+				</svg>
+			</div>
+			<h1>Interview Complete</h1>
+			<p>You've practiced all the questions. You're one step closer to crushing your YC interview!</p>
+			<button class="btn-restart" onclick="location.reload()">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<polyline points="23 4 23 10 17 10"/>
+					<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+				</svg>
+				Start Over
+			</button>
+		</div>
+	</div>
 
-<!-- Question Display --->
-<div id="question">
-	&nbsp;
-</div>
+	<!-- Question Display -->
+	<div id="question-container">
+		<div class="question-label">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="12" cy="12" r="10"/>
+				<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+				<line x1="12" y1="17" x2="12.01" y2="17"/>
+			</svg>
+			Question
+		</div>
+		<div id="question">&nbsp;</div>
+	</div>
 
+	<!-- Timer -->
+	<div id="timer-container">
+		<div class="timer-ring">
+			<svg viewBox="0 0 100 100">
+				<circle class="timer-bg" cx="50" cy="50" r="45"/>
+				<circle class="timer-progress" cx="50" cy="50" r="45"/>
+			</svg>
+			<div id="timer">20</div>
+		</div>
+		<div class="timer-label">seconds remaining</div>
+	</div>
 
-<!-- Timer -->
-<div id="timer">
-	Timer
-</div>
+	<!-- Disappointed Paul Graham -->
+	<div class="pg hide">
+		<div class="pg-overlay">
+			<img src="pg.jpg" alt="Paul Graham is disappointed" />
+			<p>Time's up! Paul Graham is disappointed.</p>
+		</div>
+	</div>
 
-
-<!-- Dissapointed Paul Graham -->
-<div class="pg hide">
-	<img src="pg.jpg" width="400" height="300" />
-</div>
-
+</main>
 
 <!-- Tips Display -->
-<div class="tip">
-	<strong>ProTip:</strong> <span id="tip">&nbsp;</span>
+<div class="tip-container">
+	<div class="tip">
+		<div class="tip-icon">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="12" cy="12" r="10"/>
+				<line x1="12" y1="16" x2="12" y2="12"/>
+				<line x1="12" y1="8" x2="12.01" y2="8"/>
+			</svg>
+		</div>
+		<div class="tip-content">
+			<strong>Pro Tip</strong>
+			<span id="tip">&nbsp;</span>
+		</div>
+	</div>
 </div>
 
-
-<!-- Keyboard Control Reference -->
+<!-- Keyboard Controls -->
 <div class="controls">
-	<h1>Key Controls</h1>
-
-	<div class="key key-space">space</div>
-	<div class="act">to restart timer</div>
-
-	<div class="key key-return">return</div>
-	<div class="act">to next question</div>
+	<div class="control-item">
+		<kbd>Space</kbd>
+		<span>Restart timer</span>
+	</div>
+	<div class="control-item">
+		<kbd>Enter</kbd>
+		<span>Next question</span>
+	</div>
 </div>
-
 
 <!-- Footer -->
-<!-- <div class="footer">
-	Built by
-	<a href="https://jamescun.com/">James Cunningham</a> and
-	<a href="https://bio.link/colinhayhurst">Colin Hayhurst</a> for
-	<a href="https://goscale.com/">GoScale</a>&#39;s YC S12 Interview
-</div> -->
+<footer class="footer">
+	&copy; 2024 Surkyl. All rights reserved.
+</footer>
 
 </body>
 </html>
