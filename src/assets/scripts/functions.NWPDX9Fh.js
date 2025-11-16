@@ -5,10 +5,19 @@ function next_q()
 {
 	if ( $('#end').hasClass('hide') == true && $('#failed').hasClass('hide') == true && !interviewFailed )
 	{
+		// Record timing for previous question (if not first call)
+		if (currentQuestionText && questionStartTime) {
+			var timeTaken = currentQuestionTime - timer;
+			recordQuestionMetric(currentQuestionText, currentQuestionTime, timeTaken);
+		}
+		
 		var question = q.shift();
 		
 		if (question != 'done')
 		{
+			// Store current question for metrics
+			currentQuestionText = question;
+			
 			// Animate question change
 			$('#question-container').css('opacity', 0).css('transform', 'translateY(20px)');
 			
@@ -29,10 +38,12 @@ function next_q()
 			}
 			
 			timer_restart();
+			questionStartTime = Date.now();
 			display_tip();
 		} else
 		{
 			// All questions answered - interview complete!
+			calculateFinalMetrics();
 			end_interview(true);
 		}
 	}
@@ -75,12 +86,15 @@ function timer_tick()
 	if (timer <= 0)
 	{
 		// FAILED - ran out of time on this question
+		calculateFinalMetrics();
+		
 		var attempt = {
 			timestamp: interviewStartTime,
 			questionsAnswered: answeredQuestions - 1, // Don't count the one they failed
 			totalTime: 600 - masterTimer,
 			passed: false,
-			failReason: 'timeout'
+			failReason: 'timeout',
+			metrics: attemptMetrics
 		};
 		
 		interviewFailed = true;

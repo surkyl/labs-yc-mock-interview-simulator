@@ -9,6 +9,7 @@
 
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script type="text/javascript" src="assets/scripts/functions.NWPDX9Fh.js"></script>
 <script type="text/javascript">
 // Timer variables
@@ -16,6 +17,7 @@ var timer = 30;
 var currentQuestionTime = 30;
 var masterTimer = 600; // 10 minutes in seconds
 var masterTimerInterval = null;
+var questionStartTime = null;
 
 // Question tracking
 var totalQuestions = 0;
@@ -25,9 +27,76 @@ var tips = [];
 var isFirstQuestion = true;
 var interviewFailed = false;
 var interviewStartTime = null;
+var currentQuestionText = "";
 
 // First question constant
 var FIRST_QUESTION = "What are you working on?";
+
+// Metrics tracking
+var attemptMetrics = {
+	questions: [],
+	totalScore: 0,
+	averageTime: 0,
+	perfectAnswers: 0,
+	quickAnswers: 0,
+	longAnswers: 0
+};
+
+// Scoring functions
+function calculateScore(timeTaken, timeAllowed) {
+	// For first question (30s): quick < 15s, perfect 15-22s, long > 22s
+	// For other questions (20s): quick < 10s, perfect 10-15s, long > 15s
+	var quickThreshold, perfectMaxThreshold;
+	
+	if (timeAllowed === 30) {
+		quickThreshold = 15;
+		perfectMaxThreshold = 22;
+	} else {
+		quickThreshold = 10;
+		perfectMaxThreshold = 15;
+	}
+	
+	if (timeTaken < quickThreshold) {
+		return { score: 70, rating: 'quick', label: 'Quick but Brief' };
+	} else if (timeTaken <= perfectMaxThreshold) {
+		return { score: 100, rating: 'perfect', label: 'Perfect Timing' };
+	} else {
+		return { score: 85, rating: 'long', label: 'Detailed but Long' };
+	}
+}
+
+function recordQuestionMetric(question, timeAllowed, timeTaken) {
+	var result = calculateScore(timeTaken, timeAllowed);
+	
+	attemptMetrics.questions.push({
+		question: question,
+		timeAllowed: timeAllowed,
+		timeTaken: timeTaken,
+		score: result.score,
+		rating: result.rating,
+		label: result.label
+	});
+	
+	// Update counters
+	if (result.rating === 'quick') attemptMetrics.quickAnswers++;
+	else if (result.rating === 'perfect') attemptMetrics.perfectAnswers++;
+	else if (result.rating === 'long') attemptMetrics.longAnswers++;
+}
+
+function calculateFinalMetrics() {
+	if (attemptMetrics.questions.length === 0) return;
+	
+	var totalScore = 0;
+	var totalTime = 0;
+	
+	attemptMetrics.questions.forEach(function(q) {
+		totalScore += q.score;
+		totalTime += q.timeTaken;
+	});
+	
+	attemptMetrics.totalScore = Math.round(totalScore / attemptMetrics.questions.length);
+	attemptMetrics.averageTime = Math.round(totalTime / attemptMetrics.questions.length * 10) / 10;
+}
 
 // Load data from YAML file
 async function loadData() {
@@ -120,7 +189,8 @@ function end_interview(success) {
 		questionsAnswered: answeredQuestions,
 		totalTime: 600 - masterTimer,
 		passed: success,
-		failReason: success ? null : 'timeout'
+		failReason: success ? null : 'timeout',
+		metrics: attemptMetrics
 	};
 	
 	saveAttempt(attempt);
@@ -149,6 +219,10 @@ function show_failure_screen(attempt) {
 	
 	$('#fail-questions-answered').text(attempt.questionsAnswered);
 	$('#fail-time-elapsed').text(formatTime(attempt.totalTime));
+	$('#fail-score').text(attempt.metrics.totalScore + '/100');
+	$('#fail-perfect').text(attempt.metrics.perfectAnswers);
+	$('#fail-quick').text(attempt.metrics.quickAnswers);
+	$('#fail-long').text(attempt.metrics.longAnswers);
 	
 	$('#failed').removeClass('hide');
 }
@@ -156,6 +230,11 @@ function show_failure_screen(attempt) {
 function updateEndScreen(attempt) {
 	$('#end-questions-answered').text(attempt.questionsAnswered);
 	$('#end-time-elapsed').text(formatTime(attempt.totalTime));
+	$('#end-score').text(attempt.metrics.totalScore + '/100');
+	$('#end-avg-time').text(attempt.metrics.averageTime + 's');
+	$('#end-perfect').text(attempt.metrics.perfectAnswers);
+	$('#end-quick').text(attempt.metrics.quickAnswers);
+	$('#end-long').text(attempt.metrics.longAnswers);
 }
 
 function formatTime(seconds) {
@@ -310,9 +389,36 @@ function updateProgress() {
 					<span class="stat-value" id="end-time-elapsed">0m 0s</span>
 					<span class="stat-label">Time Elapsed</span>
 				</div>
+				<div class="stat">
+					<span class="stat-value score-value" id="end-score">0/100</span>
+					<span class="stat-label">Overall Score</span>
+				</div>
 			</div>
-			<p class="success-message">You successfully completed your mock interview! You answered every question within the time limit. Best of luck with your actual YC interview - you've got this!</p>
+			<div class="timing-breakdown">
+				<div class="timing-stat perfect">
+					<span class="timing-count" id="end-perfect">0</span>
+					<span class="timing-label">Perfect (10-15s)</span>
+				</div>
+				<div class="timing-stat quick">
+					<span class="timing-count" id="end-quick">0</span>
+					<span class="timing-label">Quick (&lt;10s)</span>
+				</div>
+				<div class="timing-stat long">
+					<span class="timing-count" id="end-long">0</span>
+					<span class="timing-label">Long (&gt;15s)</span>
+				</div>
+			</div>
+			<p class="avg-time">Average answer time: <strong id="end-avg-time">0s</strong></p>
+			<p class="success-message">You successfully completed your mock interview! Best of luck with your actual YC interview - you've got this!</p>
 			<div class="success-actions">
+				<button class="btn-secondary" onclick="showAnalytics()">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<line x1="18" y1="20" x2="18" y2="10"/>
+						<line x1="12" y1="20" x2="12" y2="4"/>
+						<line x1="6" y1="20" x2="6" y2="14"/>
+					</svg>
+					View Details
+				</button>
 				<button class="btn-restart" onclick="location.reload()">
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 						<polyline points="23 4 23 10 17 10"/>
@@ -344,15 +450,43 @@ function updateProgress() {
 					<span class="stat-value" id="fail-time-elapsed">0m 0s</span>
 					<span class="stat-label">Time Elapsed</span>
 				</div>
+				<div class="stat">
+					<span class="stat-value score-value" id="fail-score">0/100</span>
+					<span class="stat-label">Score Before Fail</span>
+				</div>
+			</div>
+			<div class="timing-breakdown">
+				<div class="timing-stat perfect">
+					<span class="timing-count" id="fail-perfect">0</span>
+					<span class="timing-label">Perfect</span>
+				</div>
+				<div class="timing-stat quick">
+					<span class="timing-count" id="fail-quick">0</span>
+					<span class="timing-label">Quick</span>
+				</div>
+				<div class="timing-stat long">
+					<span class="timing-count" id="fail-long">0</span>
+					<span class="timing-label">Long</span>
+				</div>
 			</div>
 			<p>You ran out of time on a question. In a real YC interview, you need to answer quickly and concisely. Practice more!</p>
-			<button class="btn-restart" onclick="location.reload()">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<polyline points="23 4 23 10 17 10"/>
-					<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-				</svg>
-				Try Again
-			</button>
+			<div class="fail-actions">
+				<button class="btn-secondary" onclick="showAnalytics()">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<line x1="18" y1="20" x2="18" y2="10"/>
+						<line x1="12" y1="20" x2="12" y2="4"/>
+						<line x1="6" y1="20" x2="6" y2="14"/>
+					</svg>
+					View Details
+				</button>
+				<button class="btn-restart" onclick="location.reload()">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<polyline points="23 4 23 10 17 10"/>
+						<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+					</svg>
+					Try Again
+				</button>
+			</div>
 		</div>
 	</div>
 	
@@ -451,6 +585,193 @@ function updateProgress() {
 		<span class="version-tag">v2.0</span>
 	</div>
 </footer>
+
+<!-- Analytics Modal -->
+<div id="analytics-modal" class="modal hide" x-data="analyticsApp()" x-show="open" @keydown.escape.window="closeModal()">
+	<div class="modal-backdrop" @click="closeModal()"></div>
+	<div class="modal-content">
+		<div class="modal-header">
+			<h2>Interview Analytics</h2>
+			<button class="modal-close" @click="closeModal()">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<line x1="18" y1="6" x2="6" y2="18"/>
+					<line x1="6" y1="6" x2="18" y2="18"/>
+				</svg>
+			</button>
+		</div>
+		<div class="modal-body">
+			<!-- Tabs -->
+			<div class="analytics-tabs">
+				<button class="analytics-tab" :class="{ active: tab === 'current' }" @click="tab = 'current'">Current Attempt</button>
+				<button class="analytics-tab" :class="{ active: tab === 'history' }" @click="tab = 'history'">History</button>
+			</div>
+			
+			<!-- Current Attempt Tab -->
+			<div x-show="tab === 'current'" class="tab-content">
+				<div class="analytics-summary">
+					<div class="summary-card">
+						<div class="summary-value" x-text="currentMetrics.totalScore + '/100'">0/100</div>
+						<div class="summary-label">Overall Score</div>
+					</div>
+					<div class="summary-card">
+						<div class="summary-value" x-text="currentMetrics.averageTime + 's'">0s</div>
+						<div class="summary-label">Avg. Time</div>
+					</div>
+					<div class="summary-card">
+						<div class="summary-value" x-text="currentMetrics.questions.length">0</div>
+						<div class="summary-label">Questions</div>
+					</div>
+				</div>
+				
+				<div class="questions-list">
+					<h3>Question Breakdown</h3>
+					<template x-for="(q, index) in currentMetrics.questions" :key="index">
+						<div class="question-item" :class="q.rating">
+							<div class="question-number" x-text="'Q' + (index + 1)"></div>
+							<div class="question-details">
+								<div class="question-text" x-text="q.question"></div>
+								<div class="question-meta">
+									<span class="time-badge" x-text="q.timeTaken + 's / ' + q.timeAllowed + 's'"></span>
+									<span class="rating-badge" :class="q.rating" x-text="q.label"></span>
+									<span class="score-badge" x-text="q.score + ' pts'"></span>
+								</div>
+							</div>
+						</div>
+					</template>
+					<div x-show="currentMetrics.questions.length === 0" class="no-data">
+						No questions answered yet.
+					</div>
+				</div>
+			</div>
+			
+			<!-- History Tab -->
+			<div x-show="tab === 'history'" class="tab-content">
+				<div class="history-summary">
+					<div class="summary-card">
+						<div class="summary-value" x-text="historyStats.totalAttempts">0</div>
+						<div class="summary-label">Total Attempts</div>
+					</div>
+					<div class="summary-card">
+						<div class="summary-value" x-text="historyStats.passRate + '%'">0%</div>
+						<div class="summary-label">Pass Rate</div>
+					</div>
+					<div class="summary-card">
+						<div class="summary-value" x-text="historyStats.avgScore + '/100'">0/100</div>
+						<div class="summary-label">Avg. Score</div>
+					</div>
+				</div>
+				
+				<div class="history-list">
+					<h3>Recent Attempts</h3>
+					<template x-for="(attempt, index) in attempts" :key="index">
+						<div class="history-item" :class="{ passed: attempt.passed, failed: !attempt.passed }">
+							<div class="history-status">
+								<span x-show="attempt.passed" class="status-icon passed">✓</span>
+								<span x-show="!attempt.passed" class="status-icon failed">✗</span>
+							</div>
+							<div class="history-details">
+								<div class="history-date" x-text="formatDate(attempt.timestamp)"></div>
+								<div class="history-meta">
+									<span x-text="attempt.questionsAnswered + ' questions'"></span>
+									<span x-text="formatSeconds(attempt.totalTime)"></span>
+									<span x-show="attempt.metrics" x-text="(attempt.metrics.totalScore || 0) + '/100'"></span>
+								</div>
+							</div>
+						</div>
+					</template>
+					<div x-show="attempts.length === 0" class="no-data">
+						No previous attempts yet.
+					</div>
+					<button x-show="attempts.length > 0" class="clear-history-btn" @click="clearHistory()">
+						Clear History
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+// Alpine.js Analytics App
+function analyticsApp() {
+	return {
+		open: false,
+		tab: 'current',
+		currentMetrics: attemptMetrics,
+		attempts: [],
+		historyStats: {
+			totalAttempts: 0,
+			passRate: 0,
+			avgScore: 0
+		},
+		
+		init() {
+			this.loadHistory();
+		},
+		
+		loadHistory() {
+			this.attempts = JSON.parse(localStorage.getItem('yc_interview_attempts') || '[]').reverse();
+			this.calculateHistoryStats();
+		},
+		
+		calculateHistoryStats() {
+			if (this.attempts.length === 0) return;
+			
+			var passed = this.attempts.filter(a => a.passed).length;
+			var totalScore = 0;
+			var scoredAttempts = 0;
+			
+			this.attempts.forEach(a => {
+				if (a.metrics && a.metrics.totalScore) {
+					totalScore += a.metrics.totalScore;
+					scoredAttempts++;
+				}
+			});
+			
+			this.historyStats.totalAttempts = this.attempts.length;
+			this.historyStats.passRate = Math.round((passed / this.attempts.length) * 100);
+			this.historyStats.avgScore = scoredAttempts > 0 ? Math.round(totalScore / scoredAttempts) : 0;
+		},
+		
+		formatDate(timestamp) {
+			var date = new Date(timestamp);
+			return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+		},
+		
+		formatSeconds(seconds) {
+			var mins = Math.floor(seconds / 60);
+			var secs = seconds % 60;
+			return mins + 'm ' + secs + 's';
+		},
+		
+		closeModal() {
+			this.open = false;
+			$('#analytics-modal').addClass('hide');
+		},
+		
+		clearHistory() {
+			if (confirm('Are you sure you want to clear all attempt history?')) {
+				localStorage.removeItem('yc_interview_attempts');
+				this.attempts = [];
+				this.calculateHistoryStats();
+				updateAttemptCounter();
+			}
+		}
+	};
+}
+
+function showAnalytics() {
+	var modal = document.getElementById('analytics-modal');
+	modal.classList.remove('hide');
+	
+	// Update Alpine.js data
+	if (modal.__x) {
+		modal.__x.$data.open = true;
+		modal.__x.$data.currentMetrics = attemptMetrics;
+		modal.__x.$data.loadHistory();
+	}
+}
+</script>
 
 </body>
 </html>
