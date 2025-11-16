@@ -58,6 +58,12 @@ function timer_tick()
 {
 	if (interviewFailed) return;
 	
+	// If Easter egg is active, just reschedule without ticking
+	if (easterEggActive) {
+		setTimeout('timer_tick();', 1000);
+		return;
+	}
+	
 	$('#timer-container').removeClass('timer-warning');
 	$('#timer-container').removeClass('timer-fail');
 	
@@ -99,6 +105,10 @@ function timer_tick()
 		
 		interviewFailed = true;
 		saveAttempt(attempt);
+		
+		// Track failure with PostHog
+		Analytics.trackInterviewFailed(attempt);
+		
 		show_failure_screen(attempt);
 	}
 	

@@ -4,13 +4,13 @@
 <title>YC Mock Interview • Surkyl</title>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="stylesheet" type="text/css" href="assets/styles/style.kypp2cb5.css" />
+<link rel="stylesheet" type="text/css" href="assets/styles/style.m4xp7e9a.css" />
 <link rel="icon" type="image/png" href="https://assets.muesync.com/common/images/labs-logo.png" />
 
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-<script type="text/javascript" src="assets/scripts/functions.kypp2cb5.js"></script>
+<script type="text/javascript" src="assets/scripts/functions.m4xp7e9a.js"></script>
 <script type="text/javascript">
 // Timer variables
 var timer = 30;
@@ -24,13 +24,305 @@ var totalQuestions = 0;
 var answeredQuestions = 0;
 var q = [];
 var tips = [];
+var easterEggs = [];
 var isFirstQuestion = true;
 var interviewFailed = false;
 var interviewStartTime = null;
 var currentQuestionText = "";
+var sessionId = null;
+var easterEggActive = false;
+var savedTimer = 0;
 
 // First question constant
 var FIRST_QUESTION = "What are you working on?";
+
+// User identification
+function generateUUID() {
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+		return v.toString(16);
+	});
+}
+
+function getUserId() {
+	var userId = localStorage.getItem('yc_simulator_user_id');
+	if (!userId) {
+		userId = generateUUID();
+		localStorage.setItem('yc_simulator_user_id', userId);
+	}
+	return userId;
+}
+
+function getUserEmail() {
+	return localStorage.getItem('yc_simulator_user_email') || null;
+}
+
+function setUserEmail(email) {
+	localStorage.setItem('yc_simulator_user_email', email);
+}
+
+function getSessionId() {
+	if (!sessionId) {
+		sessionId = generateUUID();
+	}
+	return sessionId;
+}
+
+// Email collection functions
+function showEmailModal() {
+	var existingEmail = getUserEmail();
+	if (existingEmail) {
+		// User already has email stored, skip modal
+		$('#email-modal').addClass('hide');
+		return false;
+	}
+	$('#email-modal').removeClass('hide');
+	$('#user-email').focus();
+	return true;
+}
+
+function submitEmail(event) {
+	event.preventDefault();
+	var email = $('#user-email').val().trim();
+	if (email) {
+		setUserEmail(email);
+		Analytics.updateUserEmail(email);
+		$('#email-modal').addClass('hide');
+		// Start the interview after email is collected
+		startInterview();
+	}
+	return false;
+}
+
+// PostHog Analytics Helper
+var Analytics = {
+	userId: null,
+	userEmail: null,
+	
+	init: function() {
+		this.userId = getUserId();
+		this.userEmail = getUserEmail();
+		
+		// Identify user with PostHog
+		if (window.posthog) {
+			var userProperties = {
+				user_id: this.userId,
+				first_seen: localStorage.getItem('yc_simulator_first_seen') || new Date().toISOString(),
+				total_attempts: this.getTotalAttempts(),
+				pass_rate: this.getPassRate(),
+				platform: navigator.platform,
+				user_agent: navigator.userAgent,
+				screen_resolution: window.screen.width + 'x' + window.screen.height,
+				viewport_size: window.innerWidth + 'x' + window.innerHeight,
+				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+				language: navigator.language
+			};
+			
+			// Add email if available
+			if (this.userEmail) {
+				userProperties.email = this.userEmail;
+			}
+			
+			posthog.identify(this.userId, userProperties);
+			
+			// Store first seen date
+			if (!localStorage.getItem('yc_simulator_first_seen')) {
+				localStorage.setItem('yc_simulator_first_seen', new Date().toISOString());
+			}
+		}
+	},
+	
+	updateUserEmail: function(email) {
+		this.userEmail = email;
+		if (window.posthog) {
+			posthog.identify(this.userId, {
+				email: email,
+				email_collected_at: new Date().toISOString()
+			});
+			
+			// Track email collection event
+			posthog.capture('email_collected', {
+				user_id: this.userId,
+				email: email,
+				session_id: getSessionId(),
+				timestamp: new Date().toISOString()
+			});
+		}
+	},
+	
+	getTotalAttempts: function() {
+		var attempts = JSON.parse(localStorage.getItem('yc_interview_attempts') || '[]');
+		return attempts.length;
+	},
+	
+	getPassRate: function() {
+		var attempts = JSON.parse(localStorage.getItem('yc_interview_attempts') || '[]');
+		if (attempts.length === 0) return 0;
+		var passed = attempts.filter(function(a) { return a.passed; }).length;
+		return Math.round((passed / attempts.length) * 100);
+	},
+	
+	trackInterviewStarted: function(totalQuestions) {
+		if (!window.posthog) return;
+		
+		posthog.capture('interview_started', {
+			user_id: this.userId,
+			email: this.userEmail,
+			session_id: getSessionId(),
+			attempt_number: this.getTotalAttempts() + 1,
+			total_questions_available: totalQuestions,
+			master_timer_seconds: 600,
+			first_question_time: 30,
+			subsequent_question_time: 20,
+			timestamp: new Date().toISOString(),
+			referrer: document.referrer,
+			page_url: window.location.href
+		});
+	},
+	
+	trackQuestionAttempted: function(questionData) {
+		if (!window.posthog) return;
+		
+		posthog.capture('question_attempted', {
+			user_id: this.userId,
+			email: this.userEmail,
+			session_id: getSessionId(),
+			attempt_number: this.getTotalAttempts() + 1,
+			question_number: questionData.questionNumber,
+			question_text: questionData.questionText,
+			time_allowed: questionData.timeAllowed,
+			time_taken: questionData.timeTaken,
+			time_remaining: questionData.timeRemaining,
+			score: questionData.score,
+			rating: questionData.rating,
+			rating_label: questionData.ratingLabel,
+			is_first_question: questionData.isFirstQuestion,
+			master_timer_remaining: masterTimer,
+			total_questions_answered: answeredQuestions,
+			cumulative_score: attemptMetrics.totalScore,
+			perfect_answers_so_far: attemptMetrics.perfectAnswers,
+			quick_answers_so_far: attemptMetrics.quickAnswers,
+			long_answers_so_far: attemptMetrics.longAnswers,
+			timestamp: new Date().toISOString()
+		});
+	},
+	
+	trackInterviewCompleted: function(attempt) {
+		if (!window.posthog) return;
+		
+		posthog.capture('interview_completed', {
+			user_id: this.userId,
+			email: this.userEmail,
+			session_id: getSessionId(),
+			attempt_number: this.getTotalAttempts(),
+			passed: attempt.passed,
+			questions_answered: attempt.questionsAnswered,
+			total_time_seconds: attempt.totalTime,
+			total_score: attempt.metrics.totalScore,
+			average_time_per_question: attempt.metrics.averageTime,
+			perfect_answers: attempt.metrics.perfectAnswers,
+			quick_answers: attempt.metrics.quickAnswers,
+			long_answers: attempt.metrics.longAnswers,
+			questions_breakdown: attempt.metrics.questions,
+			master_timer_remaining: 600 - attempt.totalTime,
+			completion_percentage: Math.round((attempt.questionsAnswered / totalQuestions) * 100),
+			fail_reason: attempt.failReason,
+			lifetime_attempts: this.getTotalAttempts(),
+			lifetime_pass_rate: this.getPassRate(),
+			timestamp: new Date().toISOString()
+		});
+		
+		// Update user properties after completion
+		var userProps = {
+			user_id: this.userId,
+			total_attempts: this.getTotalAttempts(),
+			pass_rate: this.getPassRate(),
+			last_attempt_date: new Date().toISOString(),
+			best_score: this.getBestScore(),
+			avg_score: this.getAverageScore()
+		};
+		if (this.userEmail) {
+			userProps.email = this.userEmail;
+		}
+		posthog.identify(this.userId, userProps);
+	},
+	
+	trackInterviewFailed: function(attempt) {
+		if (!window.posthog) return;
+		
+		posthog.capture('interview_failed', {
+			user_id: this.userId,
+			email: this.userEmail,
+			session_id: getSessionId(),
+			attempt_number: this.getTotalAttempts(),
+			fail_reason: attempt.failReason,
+			questions_answered: attempt.questionsAnswered,
+			question_failed_on: currentQuestionText,
+			total_time_seconds: attempt.totalTime,
+			total_score: attempt.metrics.totalScore,
+			average_time_per_question: attempt.metrics.averageTime,
+			perfect_answers: attempt.metrics.perfectAnswers,
+			quick_answers: attempt.metrics.quickAnswers,
+			long_answers: attempt.metrics.longAnswers,
+			questions_breakdown: attempt.metrics.questions,
+			completion_percentage: Math.round((attempt.questionsAnswered / totalQuestions) * 100),
+			lifetime_attempts: this.getTotalAttempts(),
+			lifetime_pass_rate: this.getPassRate(),
+			timestamp: new Date().toISOString()
+		});
+		
+		// Update user properties after failure
+		var userProps = {
+			user_id: this.userId,
+			total_attempts: this.getTotalAttempts(),
+			pass_rate: this.getPassRate(),
+			last_attempt_date: new Date().toISOString()
+		};
+		if (this.userEmail) {
+			userProps.email = this.userEmail;
+		}
+		posthog.identify(this.userId, userProps);
+	},
+	
+	trackInterviewCanceled: function() {
+		if (!window.posthog) return;
+		
+		posthog.capture('interview_canceled', {
+			user_id: this.userId,
+			email: this.userEmail,
+			session_id: getSessionId(),
+			questions_answered_before_cancel: answeredQuestions,
+			time_elapsed_before_cancel: 600 - masterTimer,
+			master_timer_remaining: masterTimer,
+			current_question: currentQuestionText,
+			score_before_cancel: attemptMetrics.totalScore,
+			timestamp: new Date().toISOString()
+		});
+	},
+	
+	getBestScore: function() {
+		var attempts = JSON.parse(localStorage.getItem('yc_interview_attempts') || '[]');
+		if (attempts.length === 0) return 0;
+		var scores = attempts.map(function(a) {
+			return a.metrics && a.metrics.totalScore ? a.metrics.totalScore : 0;
+		});
+		return Math.max.apply(null, scores);
+	},
+	
+	getAverageScore: function() {
+		var attempts = JSON.parse(localStorage.getItem('yc_interview_attempts') || '[]');
+		if (attempts.length === 0) return 0;
+		var totalScore = 0;
+		var scored = 0;
+		attempts.forEach(function(a) {
+			if (a.metrics && a.metrics.totalScore) {
+				totalScore += a.metrics.totalScore;
+				scored++;
+			}
+		});
+		return scored > 0 ? Math.round(totalScore / scored) : 0;
+	}
+};
 
 // Metrics tracking
 var attemptMetrics = {
@@ -81,6 +373,19 @@ function recordQuestionMetric(question, timeAllowed, timeTaken) {
 	if (result.rating === 'quick') attemptMetrics.quickAnswers++;
 	else if (result.rating === 'perfect') attemptMetrics.perfectAnswers++;
 	else if (result.rating === 'long') attemptMetrics.longAnswers++;
+	
+	// Track question attempted with PostHog
+	Analytics.trackQuestionAttempted({
+		questionNumber: answeredQuestions,
+		questionText: question,
+		timeAllowed: timeAllowed,
+		timeTaken: timeTaken,
+		timeRemaining: timeAllowed - timeTaken,
+		score: result.score,
+		rating: result.rating,
+		ratingLabel: result.label,
+		isFirstQuestion: timeAllowed === 30
+	});
 }
 
 function calculateFinalMetrics() {
@@ -107,6 +412,7 @@ async function loadData() {
 		
 		q = data.questions || [];
 		tips = data.tips || [];
+		easterEggs = data.easter_eggs || [];
 		
 		// Remove "What are you working on?" and similar variations from the pool
 		q = q.filter(function(question) {
@@ -131,16 +437,19 @@ async function loadData() {
 		// Load attempt history
 		loadAttemptHistory();
 		
-		// Initialize the app
-		interviewStartTime = Date.now();
-		next_q();
-		timer_tick();
-		start_master_timer();
-		display_tip();
-		updateProgress();
+		// Initialize Analytics (this identifies the user)
+		Analytics.init();
 		
 		// Hide loading state
 		$('.loading-overlay').fadeOut(300);
+		
+		// Check if we need to collect email
+		var needsEmail = showEmailModal();
+		if (!needsEmail) {
+			// Email already collected, start interview immediately
+			startInterview();
+		}
+		// If email modal is shown, startInterview() will be called after email submission
 		
 	} catch (error) {
 		console.error('Failed to load data:', error);
@@ -148,11 +457,29 @@ async function loadData() {
 	}
 }
 
+// Start the interview after email collection
+function startInterview() {
+	// Initialize the app
+	interviewStartTime = Date.now();
+	
+	// Track interview started
+	Analytics.trackInterviewStarted(totalQuestions);
+	
+	next_q();
+	timer_tick();
+	start_master_timer();
+	display_tip();
+	updateProgress();
+}
+
 // Master timer (10 minutes)
 function start_master_timer() {
 	update_master_timer_display();
 	masterTimerInterval = setInterval(function() {
 		if (interviewFailed) return;
+		
+		// Pause master timer if Easter egg is active
+		if (easterEggActive) return;
 		
 		masterTimer--;
 		update_master_timer_display();
@@ -194,6 +521,13 @@ function end_interview(success) {
 	};
 	
 	saveAttempt(attempt);
+	
+	// Track completion with PostHog
+	if (success) {
+		Analytics.trackInterviewCompleted(attempt);
+	} else {
+		Analytics.trackInterviewFailed(attempt);
+	}
 	
 	if (success) {
 		// Show success screen
@@ -273,6 +607,9 @@ $(document).ready(function(){
 $(document).keypress(function(e) {
 	if (interviewFailed) return;
 	
+	// Ignore keypresses when typing in input fields
+	if ($(e.target).is('input, textarea')) return;
+	
 	switch (e.which)
 	{
 		case 13:
@@ -287,8 +624,8 @@ $(document).keypress(function(e) {
 			break;
 
 		case 110:
-			// Easter Egg
-			$('body').append('<div class="egg"><iframe width="420" height="315" src="http://www.youtube.com/embed/QH2-TGUlwu4?autoplay=1" frameborder="0" allowfullscreen></iframe></div>');
+			// Easter Egg - 'n' key
+			showEasterEgg();
 			break;
 	}
 });
@@ -305,6 +642,9 @@ function cancel_attempt() {
 	interviewFailed = true;
 	clearInterval(masterTimerInterval);
 	
+	// Track cancellation with PostHog
+	Analytics.trackInterviewCanceled();
+	
 	$('#question-container').addClass('hide');
 	$('#timer-container').addClass('hide');
 	$('.pg').addClass('hide');
@@ -318,6 +658,37 @@ function updateProgress() {
 	var progress = (answeredQuestions / totalQuestions) * 100;
 	$('.progress-fill').css('width', progress + '%');
 	$('.progress-text').text(answeredQuestions + ' / ' + totalQuestions);
+}
+
+function showEasterEgg() {
+	if (easterEggs.length === 0 || easterEggActive) return;
+	
+	// Pause the timer
+	easterEggActive = true;
+	savedTimer = timer;
+	
+	// Pick a random Easter egg
+	var randomIndex = Math.floor(Math.random() * easterEggs.length);
+	var egg = easterEggs[randomIndex];
+	
+	// Add autoplay parameter to embed URL
+	var embedUrl = egg.video + '?autoplay=1';
+	
+	var eggHtml = '<div class="egg">' +
+		'<div class="egg-close" onclick="closeEasterEgg()">✕</div>' +
+		'<iframe width="560" height="315" src="' + embedUrl + '" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>' +
+		'<p class="egg-joke">' + egg.joke + '</p>' +
+		'</div>';
+	
+	$('body').append(eggHtml);
+}
+
+function closeEasterEgg() {
+	$('.egg').remove();
+	
+	// Resume the timer
+	easterEggActive = false;
+	timer = savedTimer;
 }
 </script>
 
@@ -599,6 +970,32 @@ function updateProgress() {
 		<span class="version-tag">v2.0</span>
 	</div>
 </footer>
+
+<!-- Email Collection Modal -->
+<div id="email-modal" class="modal">
+	<div class="modal-backdrop"></div>
+	<div class="modal-content email-modal-content">
+		<div class="modal-header">
+			<h2>Welcome to YC Interview Simulator</h2>
+		</div>
+		<div class="modal-body">
+			<p class="email-prompt">Enter your email to track your progress across sessions and get personalized insights.</p>
+			<form id="email-form" onsubmit="return submitEmail(event)">
+				<div class="email-input-group">
+					<input type="email" id="user-email" placeholder="your@email.com" required />
+					<button type="submit" class="btn-primary">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+							<line x1="5" y1="12" x2="19" y2="12"/>
+							<polyline points="12 5 19 12 12 19"/>
+						</svg>
+						Start Practice
+					</button>
+				</div>
+			</form>
+			<p class="email-privacy">Your email is stored locally and used only for tracking your progress.</p>
+		</div>
+	</div>
+</div>
 
 <!-- Analytics Modal -->
 <div id="analytics-modal" class="modal hide" x-data="analyticsApp()" x-show="open" @keydown.escape.window="closeModal()">

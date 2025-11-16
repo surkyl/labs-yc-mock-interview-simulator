@@ -773,6 +773,80 @@ kbd {
 	background-clip: text;
 }
 
+/* Email Collection Modal */
+.email-modal-content {
+	max-width: 500px;
+}
+
+.email-prompt {
+	color: var(--color-text-gray);
+	font-size: 15px;
+	margin-bottom: 24px;
+	line-height: 1.6;
+}
+
+.email-input-group {
+	display: flex;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.email-input-group input {
+	flex: 1;
+	background: var(--color-bg-tertiary);
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+	padding: 14px 16px;
+	font-size: 15px;
+	color: var(--color-text-light);
+	outline: none;
+	transition: all 0.3s ease;
+}
+
+.email-input-group input::placeholder {
+	color: var(--color-text-muted);
+}
+
+.email-input-group input:focus {
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.btn-primary {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	background: var(--color-primary);
+	color: white;
+	border: none;
+	padding: 14px 24px;
+	border-radius: 8px;
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 20px var(--color-primary-glow);
+	white-space: nowrap;
+}
+
+.btn-primary:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 30px var(--color-primary-glow);
+}
+
+.btn-primary:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	transform: none;
+}
+
+.email-privacy {
+	font-size: 11px;
+	color: var(--color-text-muted);
+	margin-top: 20px;
+	text-align: center;
+}
+
 /* Analytics Modal */
 .modal {
 	position: fixed;
@@ -1141,8 +1215,7 @@ kbd {
 /* Easter Egg */
 .egg {
 	position: fixed;
-	width: 470px;
-	height: 365px;
+	width: 610px;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
@@ -1152,6 +1225,47 @@ kbd {
 	padding: 25px;
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
 	z-index: 500;
+	animation: scaleIn 0.3s ease-out;
+}
+
+.egg iframe {
+	border-radius: 8px;
+	display: block;
+}
+
+.egg-close {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	width: 32px;
+	height: 32px;
+	background: var(--color-bg-tertiary);
+	border: 1px solid var(--color-border);
+	border-radius: 50%;
+	color: var(--color-text-gray);
+	font-size: 16px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.2s;
+	z-index: 10;
+}
+
+.egg-close:hover {
+	background: var(--color-error);
+	border-color: var(--color-error);
+	color: white;
+	transform: scale(1.1);
+}
+
+.egg-joke {
+	margin-top: 16px;
+	color: var(--color-text-gray);
+	font-size: 14px;
+	text-align: center;
+	font-style: italic;
+	line-height: 1.5;
 }
 
 /* Scrollbar */
