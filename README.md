@@ -44,9 +44,9 @@ src/
 │   ├── images/
 │   │   └── pg.jpg                          # Paul Graham image
 │   ├── scripts/
-│   │   └── functions.NWPDX9Fh.js          # Application logic
+│   │   └── functions.uqNmM1uo.js          # Application logic
 │   └── styles/
-│       └── style.NWPDX9Fh.css             # Dark theme styling
+│       └── style.uqNmM1uo.css             # Dark theme styling
 ```
 
 ## Updating Questions & Tips
