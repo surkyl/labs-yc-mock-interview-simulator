@@ -1,0 +1,179 @@
+# YC Interview Simulator Data
+# Easy to edit - just add questions or tips to the lists below
+# Questions will be randomized automatically
+
+questions:
+  # Product & Idea
+  - What are you working on?
+  - So what are you working on?
+  - Do you have a demo?
+  - Where is the rocket science here?
+  - How does your product work in more detail?
+  - How is your product different?
+  - What are you going to do next?
+  - What's new about what you make?
+  - What, exactly, makes you different from existing options?
+  - What part of your project are you going to build first?
+  - What are you going to build?
+  - What is the next step with the product evolution?
+  - What have you learned so far from working on your product?
+  - What have you learned so far from working on this idea?
+  - How is your solution better?
+  - How much better is your solution?
+  - Have you considered some twist on your idea?
+  
+  # Users & Customers
+  - Who needs what you're making?
+  - Who would use your product?
+  - Who is your user?
+  - How do you know customers need what you're making?
+  - How do you know people want this?
+  - How do users know they need this?
+  - What do you understand about your users?
+  - What do you know about these users that no one else knows?
+  - How many users do you have?
+  - How many do you have now?
+  - How many more will you have in 3 months?
+  - How many currently active users?
+  - How many users have ever engaged?
+  - How many users are paying?
+  - How many people are in your target market?
+  - How many of these users are there?
+  - What are the top things your users want?
+  - What has surprised you about user behavior?
+  - What are your users doing now?
+  - What problem are you helping them with?
+  - Why is this a problem for them?
+  - What do they use to solve that problem right now?
+  - No, what do they really use to solve that problem right now?
+  - What do these users currently pay to have this problem solved?
+  - What do they like about this solution?
+  - What do they not like about this solution?
+  - What do they wish that solution could do for them?
+  - Would they be willing to pay more for something better?
+  - Why would they switch to your solution?
+  - Why are these users good users to try to solve problems for?
+  - What other kinds of users could you go after once you get all these users using your software?
+  - How much time and money do users in your target market waste before switching to your product/service?
+  
+  # Growth & Traction
+  - What is your user growth rate?
+  - What is your growth like?
+  - How will you get users?
+  - How will you get more?
+  - How did you get them?
+  - Where do new users come from?
+  - How will users find out about you?
+  - How will customers and/or users find out about you?
+  - What makes new users try you?
+  - What makes new users reluctant to try you?
+  - Why do the reluctant users hold back?
+  - What resistance will they have to trying you and how will you overcome it?
+  - How will you overcome that resistance?
+  - What's the conversion rate?
+  - Acquisition funnel conversion rate?
+  - How will you grow?
+  - What is your distribution strategy?
+  - How are you meeting customers?
+  - How are you understanding customer needs?
+  
+  # Business Model & Revenue
+  - How will you make money?
+  - How much money could you make per year?
+  - Total revenue?
+  - How much does customer acquisition cost?
+  - Customer acquisition cost?
+  - Total costs, fixed and marginal?
+  - What is your burn rate?
+  - How long can you go before funding?
+  - Have you raised funding?
+  - Who is going to be your first paying customer?
+  - Who was your first paying customer?
+  
+  # Market & Competition
+  - How big an opportunity is there?
+  - How many $B is the market?
+  - How fast is the market growing?
+  - What are some trends in your target market, and related markets?
+  - Who are your competitors?
+  - Who might become competitors?
+  - How many users do your competitors have?
+  - How much are your competitors making?
+  - What competition do you fear most?
+  - Which competition do you fear most?
+  - Why isn't someone already doing this?
+  - Will this company be easy to copy?
+  
+  # Team
+  - How did your team meet?
+  - Why did your team get together?
+  - Who in your team does what?
+  - Who is "the boss"?
+  - How do we know your team will stick together?
+  - Will your team stick at this?
+  - What else have you created together?
+  - Who would you hire or how would you add to your team?
+  - Who would be your next hire?
+  - What domain expertise do you have?
+  - What systems have you hacked?
+  - Tell us about a tough problem you solved?
+  - In what ways are you resourceful?
+  - What's an impressive thing you have done?
+  - Tell us something surprising you have done?
+  - What is something surprising you have done?
+  - Tell us something surprising that has happened.
+  - What's the funniest thing that has happened to you?
+  - What's the worst thing that has happened?
+  - What's the biggest mistake you have made?
+  - Are you open to changing your idea?
+  - Why are you uniquely qualified to work on this?
+  - Will these founders develop into "forces of nature"?
+  
+  # Vision & Strategy
+  - What do you understand that others don't?
+  - What do you know about this space/product others don't know?
+  - What are the key things about your field that outsiders don't understand?
+  - Why will you succeed?
+  - Why will you succeed over others?
+  - What problems/hurdles are you anticipating?
+  - What obstacles will you face and how will you overcome them?
+  - What problems and hurdles are you anticipating? How will you overcome them?
+  - Six months from now, what's going to be your biggest problem?
+  - What keeps you up at night?
+  - If your startup succeeds, what additional areas might you be able to expand into?
+  - Why did you choose this idea?
+  - Why did you pick this idea to work on?
+  - Why do you want to dedicate your life to working on this?
+  - Does this company have a clear and important mission?
+  - Will this company build something lots of people really love?
+  - How does this become a billion-dollar company?
+  
+  # YC Specific
+  - What will you do if we don't fund you?
+  - Would you relocate to Silicon Valley?
+  - Would you relocate to Silicon Valley during YC?
+  - Will you reincorporate as a US company?
+  - Someone just showed us an idea like this right before you guys. I don't like it. What else do you have?
+  - Growth rates of all of the above?
+
+tips:
+  - Try to have quick and concise answers.
+  - Try to answer in 2 to 3 sentences.
+  - Answer like you would in a conversation, this is not a presentation.
+  - When talking to PG and the other YC partners, be substantive, and get straight to the point.
+  - DO NOT BEAT AROUND THE BUSH. Do not hem and haw. "Uhm"s and "uh"s don't lend an aura of intelligence.
+  - Use precise and concise language. You aren't pitching a VC that will ask you what your "secret sauce" is.
+  - They talk quickly. Try to match their tempo (as you should when talking to anyone).
+  - Know your numbers cold. Users, growth rate, revenue, costs - have them memorized.
+  - If you don't know an answer, say so quickly and move on. Don't waste time making things up.
+  - Practice with a co-founder. YC interviews are conversations, not monologues.
+  - Focus on what you've built and learned, not what you plan to build.
+  - Show passion and deep knowledge about your problem space.
+  - Be honest about your weaknesses - they'll respect that more than BS.
+  - Have specific examples ready. "We talked to 50 customers" is better than "we did customer research".
+  - Quantify everything. "10x faster" is better than "much faster".
+  - Know your competition deeply. Why will you win?
+  - Show that you understand why this is hard and why you can do it anyway.
+  - Don't oversell. Confidence is good, delusion is bad.
+  - If asked about something you haven't thought about, acknowledge it and think out loud.
+  - Your founding story matters. Why this team? Why this problem? Why now?

@@ -8,13 +8,14 @@ YC Interview Simulator helps founders prepare for their Y Combinator interviews 
 
 ## Features
 
-- **77 Interview Questions** - Comprehensive set of YC interview questions covering product, team, market, traction, and more
+- **150+ Interview Questions** - Comprehensive set of YC interview questions covering product, team, market, traction, and more
 - **Timed Responses** - 20-second countdown timer with visual feedback to simulate interview pressure
 - **Progress Tracking** - See how many questions you've completed
 - **Pro Tips** - Helpful advice for crafting better responses
 - **Keyboard Controls** - Quick navigation with Space (restart timer) and Enter (next question)
 - **Modern Dark Theme** - Surkyl-branded interface with smooth animations and glassmorphism effects
 - **Responsive Design** - Works on desktop and mobile devices
+- **YAML-based Data** - Easy to update questions and tips via simple YAML file
 
 ## Usage
 
@@ -38,14 +39,38 @@ YC Interview Simulator helps founders prepare for their Y Combinator interviews 
 src/
 ├── index.html                              # Main application
 ├── assets/
+│   ├── data/
+│   │   └── data.yml                        # Questions and tips (YAML format)
 │   ├── images/
 │   │   └── pg.jpg                          # Paul Graham image
 │   ├── scripts/
-│   │   ├── data.QYOtYxGh.js               # Question and tip data
 │   │   └── functions.QYOtYxGh.js          # Application logic
 │   └── styles/
 │       └── style.QYOtYxGh.css             # Dark theme styling
 ```
+
+## Updating Questions & Tips
+
+The application uses a YAML file for easy data management. To add or modify questions:
+
+1. Open `src/assets/data/data.yml`
+2. Add questions under the `questions:` section
+3. Add tips under the `tips:` section
+
+Example:
+```yaml
+questions:
+  - What are you working on?
+  - How will you make money?
+  # Add more questions here...
+
+tips:
+  - Try to have quick and concise answers.
+  - Know your numbers cold.
+  # Add more tips here...
+```
+
+No JavaScript knowledge required - just edit the YAML file and refresh!
 
 ## Credits
 
@@ -58,6 +83,9 @@ src/
 - Question progress tracking
 - Improved typography and spacing
 - Responsive design
+- YAML-based data management for easy updates
+- Expanded question bank (150+ questions)
+- Additional pro tips
 - Code optimization and cleanup
 
 ## License

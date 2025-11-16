@@ -8,27 +8,51 @@
 <link rel="icon" type="image/png" href="https://assets.muesync.com/common/images/identity-logo-v1-128px.png" />
 
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
-<script type="text/javascript" src="assets/scripts/data.QYOtYxGh.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script type="text/javascript" src="assets/scripts/functions.QYOtYxGh.js"></script>
 <script type="text/javascript">
 var timer = 20;
 var totalQuestions = 0;
 var answeredQuestions = 0;
+var q = [];
+var tips = [];
 
-// Randomise Questions & Tips
-q.sort(function() {return 0.5 - Math.random()})
-tips.sort(function() {return 0.5 - Math.random()})
-
-totalQuestions = q.length;
-
-// End Questions
-q.push('done');
+// Load data from YAML file
+async function loadData() {
+	try {
+		const response = await fetch('assets/data/data.yml');
+		const yamlText = await response.text();
+		const data = jsyaml.load(yamlText);
+		
+		q = data.questions || [];
+		tips = data.tips || [];
+		
+		// Randomise Questions & Tips
+		q.sort(function() {return 0.5 - Math.random()});
+		tips.sort(function() {return 0.5 - Math.random()});
+		
+		totalQuestions = q.length;
+		
+		// End Questions marker
+		q.push('done');
+		
+		// Initialize the app
+		next_q();
+		timer_tick();
+		display_tip();
+		updateProgress();
+		
+		// Hide loading state
+		$('.loading-overlay').fadeOut(300);
+		
+	} catch (error) {
+		console.error('Failed to load data:', error);
+		$('#question').html('Failed to load questions. Please refresh the page.');
+	}
+}
 
 $(document).ready(function(){
-	next_q();
-	timer_tick();
-	display_tip();
-	updateProgress();
+	loadData();
 });
 
 $(document).keypress(function(e) {
@@ -36,7 +60,7 @@ $(document).keypress(function(e) {
 	{
 		case 13:
 			// Next Question - Return (13)
-			next_q();
+			if (q.length > 0) next_q();
 			break;
 
 		case 32:
@@ -60,6 +84,14 @@ function updateProgress() {
 
 </head>
 <body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay">
+	<div class="loading-content">
+		<div class="loading-spinner"></div>
+		<p>Loading questions...</p>
+	</div>
+</div>
 
 <!-- Background Effects -->
 <div class="bg-gradient"></div>
